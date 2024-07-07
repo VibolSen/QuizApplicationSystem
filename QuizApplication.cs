@@ -20,7 +20,6 @@ namespace QuizApplicationSystem
             Console.WriteLine("==============================================");
             while (true)
             {
-                Console.Clear() ;
                 Console.WriteLine();
                 Console.WriteLine("1. Login\n2. Register\n0. Exit");
                 Console.WriteLine();
@@ -171,13 +170,33 @@ namespace QuizApplicationSystem
         {
             Console.WriteLine("Select a quiz:");
             var quizzes = quizManager.ListAllQuizzes();
+            if (quizzes.Count == 0)
+            {
+                Console.WriteLine("No quizzes available.");
+                return;
+            }
+
             for (int i = 0; i < quizzes.Count; i++)
             {
                 Console.WriteLine($"{i + 1}. {quizzes[i].QuizName}");
             }
             Console.WriteLine($"{quizzes.Count + 1}. Mixed Quiz");
 
-            var choice = int.Parse(Console.ReadLine()) - 1;
+            int choice;
+            while (true)
+            {
+                Console.Write("Enter your choice: ");
+                if (int.TryParse(Console.ReadLine(), out choice) && choice >= 1 && choice <= quizzes.Count + 1)
+                {
+                    choice -= 1;
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine("Invalid choice. Please try again.");
+                }
+            }
+
             Quiz selectedQuiz;
             if (choice == quizzes.Count)
             {
@@ -196,28 +215,54 @@ namespace QuizApplicationSystem
                 {
                     Console.WriteLine($"{i + 1}. {question.Options[i]}");
                 }
-                var answer = Console.ReadLine().Split(',').Select(int.Parse).ToList();
+
+                Console.Write("Enter your answers (comma-separated): ");
+                List<int> answer;
+                while (true)
+                {
+                    try
+                    {
+                        answer = Console.ReadLine().Split(',').Select(int.Parse).ToList();
+                        break;
+                    }
+                    catch
+                    {
+                        Console.WriteLine("Invalid input. Please enter numbers separated by commas.");
+                    }
+                }
+
                 if (answer.OrderBy(a => a).SequenceEqual(question.CorrectAnswers.OrderBy(a => a)))
                 {
                     correctAnswers++;
+                    Console.WriteLine("Correct!");
                 }
+                else
+                {
+                    Console.WriteLine("Incorrect.");
+                }
+                Console.WriteLine();
             }
 
             Console.WriteLine($"You answered {correctAnswers} out of {selectedQuiz.Questions.Count} questions correctly.");
-            // Save the result to the user's history (implementation shown below)
             SaveQuizResult(currentUser.Username, selectedQuiz.QuizName, correctAnswers);
         }
 
+
+        private Dictionary<string, List<(string quizName, int score)>> userQuizResults = new Dictionary<string, List<(string quizName, int score)>>();
+
         private void SaveQuizResult(string username, string quizName, int score)
         {
-            // Here you would typically save the result to a database or in-memory list
-            // For simplicity, let's assume we store it in a dictionary
-            // (username, (quizName, score))
+            if (!userQuizResults.ContainsKey(username))
+            {
+                userQuizResults[username] = new List<(string quizName, int score)>();
+            }
+            userQuizResults[username].Add((quizName, score));
+
+            Console.WriteLine($"Quiz result saved for {username}: Quiz - {quizName}, Score - {score}");
         }
 
         private void ViewResults()
         {
-            // Retrieve and display the user's previous results
             var results = GetUserQuizResults(currentUser.Username);
             Console.WriteLine("Your Previous Quiz Results:");
             foreach (var result in results)
@@ -228,8 +273,14 @@ namespace QuizApplicationSystem
 
         private List<(string quizName, int score)> GetUserQuizResults(string username)
         {
-            // This would typically retrieve results from a database
-            return new List<(string quizName, int score)>();
+            if (userQuizResults.ContainsKey(username))
+            {
+                return userQuizResults[username];
+            }
+            else
+            {
+                return new List<(string quizName, int score)>();
+            }
         }
 
         private void ViewTop20()
