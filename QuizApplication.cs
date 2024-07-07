@@ -20,6 +20,8 @@ namespace QuizApplicationSystem
             Console.WriteLine("==============================================");
             while (true)
             {
+                Console.Clear() ;
+                Console.WriteLine();
                 Console.WriteLine("1. Login\n2. Register\n0. Exit");
                 Console.WriteLine();
                 Console.Write("Please Enter your choice: ");
@@ -47,7 +49,7 @@ namespace QuizApplicationSystem
                 currentUser = user;
                 Console.WriteLine("Login successful!");
                 Console.WriteLine();
-                if (username == "admin")
+                if (username == "vibolsen")
                 {
                     AdminMenu();
                 }
@@ -86,40 +88,82 @@ namespace QuizApplicationSystem
             }
         }
 
-        private void UserMenu()
+        private void AdminMenu()
         {
+            //Console.Clear ();
             while (true)
             {
-                Console.WriteLine("Menu");
+                Console.Clear();
+                Console.WriteLine();
+                Console.WriteLine("Admin Menu");
+                Console.WriteLine("==============================================");
+                Console.WriteLine();
+                Console.WriteLine("1. Create Quiz\n2. Edit Quiz\n3. Delete Quiz\n4. View Quiz\n5. Logout");
+                Console.WriteLine();
+                Console.Write("Please Enter your choice: ");
+                var choice = Console.ReadLine();
+                if (choice == "1") CreateQuiz();
+                else if (choice == "2") EditQuiz();
+                else if (choice == "3") DeleteQuiz();
+                else if (choice == "4") ViewQuiz();
+                else if (choice == "5") { currentUser = null; break; }
+            }
+        }
+
+        private void CreateQuiz()
+        {
+            var quizUtility = new QuizUtility();
+            quizUtility.CreateQuiz("vibolsen", "admin123");
+        }
+
+        private void ViewQuiz()
+        {
+            var quizUtility = new QuizUtility();
+            quizUtility.ViewQuiz("vibolsen", "admin123");
+        }
+
+        private void EditQuiz()
+        {
+            var quizUtility = new QuizUtility();
+            quizUtility.EditQuiz("vibolsen", "admin123");
+        }
+
+        private void DeleteQuiz()
+        {
+            var quizUtility = new QuizUtility();
+            quizUtility.DeleteQuiz("vibolsen", "admin123");
+        }
+
+        private void PrintQuiz(Quiz quiz)
+        {
+            Console.WriteLine($"Quiz Name: {quiz.QuizName}");
+            foreach (var question in quiz.Questions)
+            {
+                Console.WriteLine($"Question: {question.QuestionText}");
+                for (int i = 0; i < question.Options.Count; i++)
+                {
+                    Console.WriteLine($"Option {i + 1}: {question.Options[i]}");
+                }
+            }
+        }
+
+        private void UserMenu()
+        {
+            Console.Clear();
+            while (true)
+            {
+                Console.WriteLine("User Menu");
                 Console.WriteLine("==============================================");
                 Console.WriteLine();
                 Console.WriteLine("1. Start Quiz\n2. View Results\n3. View Top 20\n4. Edit Settings\n5. Logout");
                 Console.WriteLine();
-                Console.WriteLine("Please Enter your choice: ");
+                Console.Write("Please Enter your choice: ");
                 var choice = Console.ReadLine();
                 if (choice == "1") StartQuiz();
                 else if (choice == "2") ViewResults();
                 else if (choice == "3") ViewTop20();
                 else if (choice == "4") EditSettings();
                 else if (choice == "5") { currentUser = null; break; }
-            }
-        }
-
-        private void AdminMenu()
-        {
-            while (true)
-            {
-                Console.WriteLine("Welcome Back Admin");
-                Console.WriteLine();
-                Console.WriteLine("Menu");
-                Console.WriteLine("==============================================");
-                Console.WriteLine("1. Create Quiz\n2. Edit Quiz\n3. Delete Quiz\n4. Logout");
-                Console.WriteLine("Please Enter your choice: ");
-                var choice = Console.ReadLine();
-                if (choice == "1") CreateQuiz();
-                else if (choice == "2") EditQuiz();
-                else if (choice == "3") DeleteQuiz();
-                else if (choice == "4") { currentUser = null; break; }
             }
         }
 
@@ -224,25 +268,5 @@ namespace QuizApplicationSystem
                 Console.WriteLine("Error updating settings.");
             }
         }
-
-        private void CreateQuiz()
-        {
-            var quizUtility = new QuizUtility();
-            quizUtility.CreateQuiz("admin", "admin123");
-        }
-
-        private void EditQuiz()
-        {
-            var quizUtility = new QuizUtility();
-            quizUtility.EditQuiz("admin", "admin123");
-        }
-
-        private void DeleteQuiz()
-        {
-            var quizUtility = new QuizUtility();
-            quizUtility.DeleteQuiz("admin", "admin123");
-        }
     }
-
-
 }

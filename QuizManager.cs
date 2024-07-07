@@ -60,10 +60,19 @@ public class QuizManager
         }
 
         var random = new Random();
-        for (int i = 0; i < 20; i++)
+        var questionCount = Math.Min(20, allQuestions.Count);
+        var usedIndices = new HashSet<int>();
+
+        while (mixedQuiz.Questions.Count < questionCount)
         {
-            var question = allQuestions[random.Next(allQuestions.Count)];
-            mixedQuiz.AddQuestion(question);
+            int index;
+            do
+            {
+                index = random.Next(allQuestions.Count);
+            } while (usedIndices.Contains(index));
+
+            usedIndices.Add(index);
+            mixedQuiz.AddQuestion(allQuestions[index]);
         }
 
         return mixedQuiz;
