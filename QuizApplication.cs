@@ -8,23 +8,28 @@ namespace QuizApplicationSystem
 {
     public class QuizApplication
     {
-        private UserManager userManager = new UserManager();
-        private QuizManager quizManager = new QuizManager();
-        private User currentUser;
+        private UserManager userManager = new UserManager(); // Manages user authentication and registration
+        private QuizManager quizManager = new QuizManager(); // Manages quizzes
+        private User currentUser; // Stores the currently logged in user
 
         public void Start()
         {
+            // Clears the console and displays the welcome message
             Console.Clear();
             Console.WriteLine();
             Console.WriteLine("Welcome to the Quiz Application!");
             Console.WriteLine("==============================================");
+
             while (true)
             {
+                // Display login and registration options
                 Console.WriteLine();
                 Console.WriteLine("1. Login\n2. Register\n0. Exit");
                 Console.WriteLine();
                 Console.Write("Please Enter your choice: ");
                 var choice = Console.ReadLine();
+
+                // Perform actions based on user choice
                 if (choice == "1") Login();
                 else if (choice == "2") Register();
                 else if (choice == "0") break;
@@ -33,6 +38,7 @@ namespace QuizApplicationSystem
 
         private void Login()
         {
+            // Clears the console and prompts the user for login details
             Console.Clear();
             Console.WriteLine("1. Login");
             Console.WriteLine("==============================================");
@@ -42,12 +48,15 @@ namespace QuizApplicationSystem
             var password = Console.ReadLine();
             Console.WriteLine();
 
+            // Authenticates the user
             var user = userManager.AuthenticateUser(username, password);
             if (user != null)
             {
                 currentUser = user;
                 Console.WriteLine("Login successful!");
                 Console.WriteLine();
+
+                // Redirect to admin or user menu based on username
                 if (username == "vibolsen")
                 {
                     AdminMenu();
@@ -59,13 +68,14 @@ namespace QuizApplicationSystem
             }
             else
             {
-                Console.WriteLine("Login failed your username or password incorrect! try again.");
+                Console.WriteLine("Login failed. Your username or password is incorrect! Try again.");
                 Console.WriteLine();
             }
         }
 
         private void Register()
         {
+            // Clears the console and prompts the user for registration details
             Console.Clear();
             Console.WriteLine("2. Register");
             Console.WriteLine("==============================================");
@@ -75,8 +85,15 @@ namespace QuizApplicationSystem
             Console.Write("Password: ");
             var password = Console.ReadLine();
             Console.Write("Date of Birth (yyyy-mm-dd): ");
-            var dateOfBirth = DateTime.Parse(Console.ReadLine());
+            DateTime dateOfBirth;
 
+            // Ensures the date format is correct
+            while (!DateTime.TryParse(Console.ReadLine(), out dateOfBirth))
+            {
+                Console.WriteLine("Invalid date format. Please enter again (yyyy-mm-dd): ");
+            }
+
+            // Registers the user
             if (userManager.RegisterUser(username, password, dateOfBirth))
             {
                 Console.WriteLine("Registration successful! You can now login.");
@@ -89,9 +106,9 @@ namespace QuizApplicationSystem
 
         private void AdminMenu()
         {
-            //Console.Clear ();
             while (true)
             {
+                // Displays the admin menu options
                 Console.Clear();
                 Console.WriteLine();
                 Console.WriteLine("Admin Menu");
@@ -101,6 +118,8 @@ namespace QuizApplicationSystem
                 Console.WriteLine();
                 Console.Write("Please Enter your choice: ");
                 var choice = Console.ReadLine();
+
+                // Perform actions based on admin's choice
                 if (choice == "1") CreateQuiz();
                 else if (choice == "2") EditQuiz();
                 else if (choice == "3") DeleteQuiz();
@@ -112,29 +131,30 @@ namespace QuizApplicationSystem
         private void CreateQuiz()
         {
             var quizUtility = new QuizUtility();
-            quizUtility.CreateQuiz("vibolsen", "admin123");
+            quizUtility.CreateQuiz("vibolsen", "admin123"); // Calls QuizUtility to create a quiz
         }
 
         private void ViewQuiz()
         {
             var quizUtility = new QuizUtility();
-            quizUtility.ViewQuiz("vibolsen", "admin123");
+            quizUtility.ViewQuiz("vibolsen", "admin123"); // Calls QuizUtility to view quizzes
         }
 
         private void EditQuiz()
         {
             var quizUtility = new QuizUtility();
-            quizUtility.EditQuiz("vibolsen", "admin123");
+            quizUtility.EditQuiz("vibolsen", "admin123"); // Calls QuizUtility to edit a quiz
         }
 
         private void DeleteQuiz()
         {
             var quizUtility = new QuizUtility();
-            quizUtility.DeleteQuiz("vibolsen", "admin123");
+            quizUtility.DeleteQuiz("vibolsen", "admin123"); // Calls QuizUtility to delete a quiz
         }
 
         private void PrintQuiz(Quiz quiz)
         {
+            // Prints quiz details
             Console.WriteLine($"Quiz Name: {quiz.QuizName}");
             foreach (var question in quiz.Questions)
             {
@@ -151,6 +171,7 @@ namespace QuizApplicationSystem
             Console.Clear();
             while (true)
             {
+                // Displays the user menu options
                 Console.WriteLine("User Menu");
                 Console.WriteLine("==============================================");
                 Console.WriteLine();
@@ -158,6 +179,8 @@ namespace QuizApplicationSystem
                 Console.WriteLine();
                 Console.Write("Please Enter your choice: ");
                 var choice = Console.ReadLine();
+
+                // Perform actions based on user's choice
                 if (choice == "1") StartQuiz();
                 else if (choice == "2") ViewResults();
                 else if (choice == "3") ViewTop20();
@@ -169,7 +192,7 @@ namespace QuizApplicationSystem
         private void StartQuiz()
         {
             Console.WriteLine("Select a quiz:");
-            var quizzes = quizManager.ListAllQuizzes();
+            var quizzes = quizManager.ListAllQuizzes(); // Lists all available quizzes
             if (quizzes.Count == 0)
             {
                 Console.WriteLine("No quizzes available.");
@@ -185,6 +208,7 @@ namespace QuizApplicationSystem
             int choice;
             while (true)
             {
+                // Prompts user to select a quiz
                 Console.Write("Enter your choice: ");
                 if (int.TryParse(Console.ReadLine(), out choice) && choice >= 1 && choice <= quizzes.Count + 1)
                 {
@@ -200,7 +224,7 @@ namespace QuizApplicationSystem
             Quiz selectedQuiz;
             if (choice == quizzes.Count)
             {
-                selectedQuiz = quizManager.GenerateMixedQuiz();
+                selectedQuiz = quizManager.GenerateMixedQuiz(); // Generates a mixed quiz
             }
             else
             {
@@ -210,6 +234,7 @@ namespace QuizApplicationSystem
             int correctAnswers = 0;
             foreach (var question in selectedQuiz.Questions)
             {
+                // Displays quiz questions and options
                 Console.WriteLine(question.QuestionText);
                 for (int i = 0; i < question.Options.Count; i++)
                 {
@@ -222,7 +247,7 @@ namespace QuizApplicationSystem
                 {
                     try
                     {
-                        answer = Console.ReadLine().Split(',').Select(int.Parse).ToList();
+                        answer = Console.ReadLine().Split(',').Select(int.Parse).ToList(); // Reads user answers
                         break;
                     }
                     catch
@@ -231,6 +256,7 @@ namespace QuizApplicationSystem
                     }
                 }
 
+                // Checks if answers are correct
                 if (answer.OrderBy(a => a).SequenceEqual(question.CorrectAnswers.OrderBy(a => a)))
                 {
                     correctAnswers++;
@@ -243,11 +269,12 @@ namespace QuizApplicationSystem
                 Console.WriteLine();
             }
 
+            // Displays user's score
             Console.WriteLine($"You answered {correctAnswers} out of {selectedQuiz.Questions.Count} questions correctly.");
             SaveQuizResult(currentUser.Username, selectedQuiz.QuizName, correctAnswers);
         }
 
-
+        // Stores quiz results
         private Dictionary<string, List<(string quizName, int score)>> userQuizResults = new Dictionary<string, List<(string quizName, int score)>>();
 
         private void SaveQuizResult(string username, string quizName, int score)
@@ -263,6 +290,7 @@ namespace QuizApplicationSystem
 
         private void ViewResults()
         {
+            // Retrieves and displays user's previous quiz results
             var results = GetUserQuizResults(currentUser.Username);
             Console.WriteLine("Your Previous Quiz Results:");
             foreach (var result in results)
@@ -273,51 +301,66 @@ namespace QuizApplicationSystem
 
         private List<(string quizName, int score)> GetUserQuizResults(string username)
         {
-            if (userQuizResults.ContainsKey(username))
-            {
-                return userQuizResults[username];
-            }
-            else
-            {
-                return new List<(string quizName, int score)>();
-            }
+            // Returns the quiz results for the specified user
+            return userQuizResults.ContainsKey(username) ? userQuizResults[username] : new List<(string quizName, int score)>();
         }
 
         private void ViewTop20()
         {
-            Console.WriteLine("Select a quiz:");
+            Console.Clear();
+            // Prompts user to select a quiz to view top 20 scores
+            Console.WriteLine("Select a quiz to view top 20 scores:");
             var quizzes = quizManager.ListAllQuizzes();
             for (int i = 0; i < quizzes.Count; i++)
             {
                 Console.WriteLine($"{i + 1}. {quizzes[i].QuizName}");
             }
-
-            var choice = int.Parse(Console.ReadLine()) - 1;
-            var selectedQuiz = quizzes[choice];
-
-            var topScores = userManager.ListTop20Scores(selectedQuiz);
-            Console.WriteLine("Top 20 Scores:");
-            foreach (var (username, score) in topScores)
+            int choice;
+            while (true)
             {
-                Console.WriteLine($"{username}: {score}");
+                Console.Write("Enter your choice: ");
+                if (int.TryParse(Console.ReadLine(), out choice) && choice >= 1 && choice <= quizzes.Count)
+                {
+                    choice -= 1;
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine("Invalid choice. Please try again.");
+                }
+            }
+            var quizName = quizzes[choice].QuizName;
+            var topScores = userManager.ListTop20Scores(quizName);
+
+            // Displays top 20 scores for the selected quiz
+            Console.WriteLine($"Top 20 scores for quiz: {quizName}");
+            foreach (var score in topScores)
+            {
+                Console.WriteLine($"Username: {score.username}, Score: {score.score}");
             }
         }
 
         private void EditSettings()
         {
+            Console.Clear();
+            // Prompts user to edit their account settings
+            Console.WriteLine("Edit Settings");
+            Console.WriteLine("==============================================");
+            Console.Write("New Username: ");
+            var newUsername = Console.ReadLine();
             Console.Write("New Password: ");
             var newPassword = Console.ReadLine();
             Console.Write("New Date of Birth (yyyy-mm-dd): ");
-            var newDateOfBirth = DateTime.Parse(Console.ReadLine());
+            DateTime newDateOfBirth;
+            while (!DateTime.TryParse(Console.ReadLine(), out newDateOfBirth))
+            {
+                Console.WriteLine("Invalid date format. Please enter again (yyyy-mm-dd): ");
+            }
 
-            if (userManager.EditUserSettings(currentUser.Username, newPassword, newDateOfBirth))
-            {
-                Console.WriteLine("Settings updated successfully.");
-            }
-            else
-            {
-                Console.WriteLine("Error updating settings.");
-            }
+            // Updates user settings
+            userManager.EditUserSettings(currentUser.Username, newUsername, newPassword, newDateOfBirth);
+            currentUser.Username = newUsername;
+            Console.WriteLine("Settings updated successfully.");
         }
     }
 }

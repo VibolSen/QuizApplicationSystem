@@ -1,100 +1,97 @@
-﻿using QuizApplicationSystem;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace QuizApplicationSystem
 {
     public class UserManager
     {
-        private const string UserFilePath = "users.txt";
-        private readonly string adminUsername = "vibolsen";
-        private readonly string adminPassword = "admin123";
+        // Stores users' credentials and information
+        private Dictionary<string, (string Password, DateTime DateOfBirth)> users = new Dictionary<string, (string Password, DateTime DateOfBirth)>();
+        // Stores users' quiz scores
+        private Dictionary<string, List<(string quizName, int score)>> userScores = new Dictionary<string, List<(string quizName, int score)>>();
 
-        public UserManager()
+        public User AuthenticateUser(string username, string password)
         {
-            // Ensure the user file exists
-            if (!File.Exists(UserFilePath))
+            // Authenticates the user by checking if the username and password match
+            if (users.ContainsKey(username) && users[username].Password == password)
             {
-                File.Create(UserFilePath).Close();
+                return new User(username, password, users[username].DateOfBirth);
             }
+            return null;
         }
 
         public bool RegisterUser(string username, string password, DateTime dateOfBirth)
         {
-            if (IsUsernameTaken(username))
+            // Registers a new user if the username doesn't already exist
+            if (users.ContainsKey(username))
+            {
+                return false;
+            }
+            users[username] = (password, dateOfBirth);
+            return true;
+        }
+
+        /*public void EditUserSettings(string username, string newUsername, string newPassword, DateTime newDateOfBirth)
+        {
+            // Edits user settings and updates the user information
+            if (users.ContainsKey(username))
+            {
+                var userInfo = users[username];
+                users.Remove(username);
+                users[newUsername] = (newPassword, newDateOfBirth);
+            }
+        }*/
+
+        public bool EditUserSettings(string username, string newUsername, string newPassword, DateTime newDateOfBirth)
+        {
+            // Check if the newUsername already exists and ensure it's not the same as the current username
+            if (!users.ContainsKey(username) || (users.ContainsKey(newUsername) && newUsername != username))
             {
                 return false;
             }
 
-            var userLine = $"{username}|{password}|{dateOfBirth:yyyy-MM-dd}";
-            File.AppendAllLines(UserFilePath, new[] { userLine });
+            var userInfo = users[username];
+            users.Remove(username);
+            users[newUsername] = (newPassword, newDateOfBirth);
+
+            // Update the user's quiz scores if the username has been changed
+            if (userScores.ContainsKey(username))
+            {
+                var scores = userScores[username];
+                userScores.Remove(username);
+                userScores[newUsername] = scores;
+            }
+
             return true;
         }
 
-        public User AuthenticateUser(string username, string password)
-        {
-            if (username == adminUsername && password == adminPassword)
-            {
-                return new User(username, password, DateTime.MinValue); // Admin doesn't need date of birth
-            }
 
-            var users = File.ReadAllLines(UserFilePath);
-            foreach (var user in users)
+        public List<(string username, int score)> ListTop20Scores(string quizName)
+        {
+            // Lists the top 20 scores for a specific quiz
+            var allScores = new List<(string username, int score)>();
+            foreach (var user in userScores)
             {
-                var userParts = user.Split('|');
-                if (userParts[0] == username && userParts[1] == password)
+                foreach (var score in user.Value)
                 {
-                    return new User(username, password, DateTime.Parse(userParts[2]));
+                    if (score.quizName == quizName)
+                    {
+                        allScores.Add((user.Key, score.score));
+                    }
                 }
             }
-
-            return null;
+            allScores.Sort((a, b) => b.score.CompareTo(a.score));
+            return allScores.GetRange(0, Math.Min(20, allScores.Count));
         }
 
-        public bool EditUserSettings(string username, string newPassword, DateTime newDateOfBirth)
+        public void SaveUserScore(string username, string quizName, int score)
         {
-            var users = File.ReadAllLines(UserFilePath).ToList();
-            for (int i = 0; i < users.Count; i++)
+            // Saves the user's score for a specific quiz
+            if (!userScores.ContainsKey(username))
             {
-                var userParts = users[i].Split('|');
-                if (userParts[0] == username)
-                {
-                    users[i] = $"{username}|{newPassword}|{newDateOfBirth:yyyy-MM-dd}";
-                    File.WriteAllLines(UserFilePath, users);
-                    return true;
-                }
+                userScores[username] = new List<(string quizName, int score)>();
             }
-
-            return false;
-        }
-
-        public User GetUser(string username)
-        {
-            var users = File.ReadAllLines(UserFilePath);
-            foreach (var user in users)
-            {
-                var userParts = user.Split('|');
-                if (userParts[0] == username)
-                {
-                    return new User(username, userParts[1], DateTime.Parse(userParts[2]));
-                }
-            }
-
-            return null;
-        }
-
-        private bool IsUsernameTaken(string username)
-        {
-            var users = File.ReadAllLines(UserFilePath);
-            return users.Any(user => user.Split('|')[0] == username);
-        }
-
-        public List<(string Username, int Score)> ListTop20Scores(Quiz quiz)
-        {
-            // Implement this method to list top 20 scores from a persistent storage
-            return new List<(string Username, int Score)>();
+            userScores[username].Add((quizName, score));
         }
     }
 }

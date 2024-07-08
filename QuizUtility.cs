@@ -1,228 +1,244 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QuizApplicationSystem
 {
     public class QuizUtility
     {
-        private QuizManager quizManager = new QuizManager();
-        private UserManager userManager = new UserManager();
+        private QuizManager quizManager = new QuizManager(); // Manages quizzes
 
-        public void CreateQuiz(string username, string password)
+        /*public void CreateQuiz(string adminUsername, string adminPassword)
         {
+            // Admin authentication logic can be added here
             Console.Clear();
-            Console.WriteLine("1. Create Quiz");
+            Console.WriteLine("Create New Quiz");
             Console.WriteLine("==============================================");
-            var user = userManager.AuthenticateUser(username, password);
-            if (user != null)
-            {
-                Console.Write("Quiz Name: ");
-                var quizName = Console.ReadLine();
-                var quiz = new Quiz(quizName);
+            Console.Write("Enter Quiz Name: ");
+            var quizName = Console.ReadLine();
 
-                for (int i = 0; i < 20; i++)
+            var quiz = new Quiz(quizName);
+
+            while (true)
+            {
+                Console.WriteLine("Add a new question:");
+                Console.Write("Question Text: ");
+                var question = new Question();
+                //var questionText = Console.ReadLine();
+
+                Console.Write("Question Text: ");
+                question.QuestionText = Console.ReadLine();
+
+                Console.WriteLine("Enter the options (separated by commas):");
+                var options = Console.ReadLine().Split(',');
+                question.Options = new List<string>(options);
+
+                Console.WriteLine("Enter the correct answers (separated by commas, by option number):");
+                var correctAnswers = Console.ReadLine().Split(',');
+                question.CorrectAnswers = new List<int>();
+                foreach (var answer in correctAnswers)
                 {
-                    Console.Write($"Question {i + 1}: ");
-                    var questionText = Console.ReadLine();
-                    var options = new List<string>();
-                    for (int j = 0; j < 4; j++)
+                    if (int.TryParse(answer, out int result))
                     {
-                        Console.Write($"Option {j + 1}: ");
-                        options.Add(Console.ReadLine());
-                    }
-                    Console.Write("Correct Answers (comma separated indices): ");
-                    var correctAnswers = Console.ReadLine().Split(',').Select(int.Parse).ToList();
-
-                    quiz.AddQuestion(new Question(questionText, options, correctAnswers));
-                }
-
-                quizManager.CreateQuiz(quiz);
-                Console.WriteLine("Quiz created successfully.");
-            }
-            else
-            {
-                Console.WriteLine("Invalid username or password.");
-            }
-        }
-
-        /*public void ViewQuiz(string username, string password)
-        {
-            Console.Clear();
-            Console.WriteLine("4. View Quiz");
-            Console.WriteLine("==============================================");
-            var user = userManager.AuthenticateUser(username, password);
-            if (user != null)
-            {
-                Console.Write("Enter Quiz Name to View: ");
-                var quizName = Console.ReadLine();
-                var quiz = quizManager.GetQuiz(quizName);
-
-                if (quiz != null)
-                {
-                    Console.WriteLine($"Quiz Name: {quiz.QuizName}");
-                    for (int i = 0; i < quiz.Questions.Count; i++)
-                    {
-                        var question = quiz.Questions[i];
-                        Console.WriteLine($"Question {i + 1}: {question.QuestionText}");
-                        for (int j = 0; j < question.Options.Count; j++)
-                        {
-                            Console.WriteLine($"Option {j + 1}: {question.Options[j]}");
-                        }
-                        Console.WriteLine($"Correct Answers: {string.Join(", ", question.CorrectAnswers)}");
+                        question.CorrectAnswers.Add(result);
                     }
                 }
-                else
+
+                quiz.Questions.Add(question);
+
+                Console.Write("Do you want to add another question? (yes/no): ");
+                var continueAdding = Console.ReadLine();
+                if (continueAdding.ToLower() != "yes")
                 {
-                    Console.WriteLine();
-                    Console.Write("Quiz not found. Press any key to return to the admin menu. ");
-                    Console.ReadKey();
+                    break;
                 }
             }
-            else
-            {
-                Console.WriteLine("Invalid username or password.");
-            }
+
+            quizManager.AddQuiz(quiz);
+            Console.WriteLine("Quiz created successfully!");
         }*/
 
-        public void ViewQuiz(string username, string password)
+        public void CreateQuiz(string adminUsername, string adminPassword)
         {
+            // Admin authentication logic can be added here
             Console.Clear();
-            Console.WriteLine("4. View Quiz");
+            Console.WriteLine("Create New Quiz");
             Console.WriteLine("==============================================");
-            var user = userManager.AuthenticateUser(username, password);
-            if (user != null)
+            Console.Write("Enter Quiz Name: ");
+            var quizName = Console.ReadLine();
+
+            var quiz = new Quiz(quizName);
+
+            while (true)
             {
-                var quizzes = quizManager.ListAllQuizzes();
-                if (quizzes.Count == 0)
-                {
-                    Console.Write("No quizzes available. Press any key to return to the admin menu.");
-                    Console.ReadKey();
-                    return;
-                }
+                Console.WriteLine("Add a new question:");
 
-                Console.WriteLine("Available Quizzes:");
-                for (int i = 0; i < quizzes.Count; i++)
-                {
-                    Console.WriteLine($"{i + 1}. {quizzes[i].QuizName}");
-                }
+                // Prompt for question text
+                Console.Write("Question Text: ");
+                var questionText = Console.ReadLine();
 
-                Console.Write("Which quiz do you want to view? Enter the number: ");
-                if (int.TryParse(Console.ReadLine(), out int quizIndex) && quizIndex > 0 && quizIndex <= quizzes.Count)
+                // Prompt for options
+                Console.WriteLine("Enter the options (separated by commas):");
+                var optionsInput = Console.ReadLine();
+                var options = optionsInput.Split(',');
+                var questionOptions = new List<string>(options);
+
+                // Prompt for correct answers
+                Console.WriteLine("Enter the correct answers (separated by commas, by option number):");
+                var correctAnswersInput = Console.ReadLine();
+                var correctAnswers = new List<int>();
+                var correctAnswersArray = correctAnswersInput.Split(',');
+                foreach (var answer in correctAnswersArray)
                 {
-                    var quiz = quizzes[quizIndex - 1];
-                    Console.WriteLine($"Quiz Name: {quiz.QuizName}");
-                    for (int i = 0; i < quiz.Questions.Count; i++)
+                    if (int.TryParse(answer, out int result))
                     {
-                        var question = quiz.Questions[i];
-                        Console.WriteLine($"Question {i + 1}: {question.QuestionText}");
-                        for (int j = 0; j < question.Options.Count; j++)
-                        {
-                            Console.WriteLine($"Option {j + 1}: {question.Options[j]}");
-                        }
-                        Console.WriteLine($"Correct Answers: {string.Join(", ", question.CorrectAnswers)}");
+                        correctAnswers.Add(result);
                     }
                 }
-                else
+
+                // Create the Question object
+                var question = new Question(questionText, questionOptions, correctAnswers);
+
+                // Add the question to the quiz
+                quiz.Questions.Add(question);
+
+                // Ask if user wants to add another question
+                Console.Write("Do you want to add another question? (yes/no): ");
+                var continueAdding = Console.ReadLine();
+                if (continueAdding.ToLower() != "yes")
                 {
-                    Console.WriteLine("Invalid selection. Press any key to return to the admin menu.");
-                    Console.ReadKey();
+                    break;
                 }
             }
-            else
+
+            // Add the quiz to the quiz manager
+            quizManager.AddQuiz(quiz);
+            Console.WriteLine("Quiz created successfully!");
+        }
+
+
+        public void ViewQuiz(string adminUsername, string adminPassword)
+        {
+            // Admin authentication logic can be added here
+            Console.Clear();
+            var quizzes = quizManager.ListAllQuizzes();
+            foreach (var quiz in quizzes)
             {
-                Console.WriteLine("Invalid username or password.");
+                Console.WriteLine($"Quiz: {quiz.QuizName}");
+                foreach (var question in quiz.Questions)
+                {
+                    Console.WriteLine($"Question: {question.QuestionText}");
+                    for (int i = 0; i < question.Options.Count; i++)
+                    {
+                        Console.WriteLine($"Option {i + 1}: {question.Options[i]}");
+                    }
+                    Console.WriteLine($"Correct Answers: {string.Join(", ", question.CorrectAnswers)}");
+                }
+                Console.WriteLine("==============================================");
             }
         }
 
-        public void EditQuiz(string username, string password)
+        public void EditQuiz(string adminUsername, string adminPassword)
         {
+            // Admin authentication logic can be added here
             Console.Clear();
-            Console.WriteLine("2. Edit Quiz");
-            Console.WriteLine("==============================================");
-            var user = userManager.AuthenticateUser(username, password);
-            if (user != null)
+            var quizzes = quizManager.ListAllQuizzes();
+            Console.WriteLine("Select a quiz to edit:");
+            for (int i = 0; i < quizzes.Count; i++)
             {
-                Console.Write("Enter Quiz Name to Edit: ");
-                var quizName = Console.ReadLine();
-                var quiz = quizManager.GetQuiz(quizName);
+                Console.WriteLine($"{i + 1}. {quizzes[i].QuizName}");
+            }
 
-                if (quiz != null)
+            int choice;
+            while (true)
+            {
+                Console.Write("Enter your choice: ");
+                if (int.TryParse(Console.ReadLine(), out choice) && choice >= 1 && choice <= quizzes.Count)
                 {
-                    for (int i = 0; i < quiz.Questions.Count; i++)
-                    {
-                        var question = quiz.Questions[i];
-                        Console.WriteLine($"Current Question {i + 1}: {question.QuestionText}");
-                        Console.Write("New Question Text (leave empty to keep current): ");
-                        var newQuestionText = Console.ReadLine();
-                        if (!string.IsNullOrEmpty(newQuestionText))
-                        {
-                            question.QuestionText = newQuestionText;
-                        }
+                    choice -= 1;
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine("Invalid choice. Please try again.");
+                }
+            }
 
-                        for (int j = 0; j < question.Options.Count; j++)
+            var quiz = quizzes[choice];
+
+            Console.WriteLine($"Editing quiz: {quiz.QuizName}");
+            Console.Write("Enter new quiz name (or press Enter to keep current name): ");
+            var newQuizName = Console.ReadLine();
+            if (!string.IsNullOrEmpty(newQuizName))
+            {
+                quiz.QuizName = newQuizName;
+            }
+
+            for (int i = 0; i < quiz.Questions.Count; i++)
+            {
+                var question = quiz.Questions[i];
+                Console.WriteLine($"Editing question {i + 1}: {question.QuestionText}");
+                Console.Write("Enter new question text (or press Enter to keep current text): ");
+                var newQuestionText = Console.ReadLine();
+                if (!string.IsNullOrEmpty(newQuestionText))
+                {
+                    question.QuestionText = newQuestionText;
+                }
+
+                Console.WriteLine("Enter new options (separated by commas) or press Enter to keep current options:");
+                var newOptions = Console.ReadLine();
+                if (!string.IsNullOrEmpty(newOptions))
+                {
+                    question.Options = new List<string>(newOptions.Split(','));
+                }
+
+                Console.WriteLine("Enter new correct answers (separated by commas, by option number) or press Enter to keep current correct answers:");
+                var newCorrectAnswers = Console.ReadLine();
+                if (!string.IsNullOrEmpty(newCorrectAnswers))
+                {
+                    question.CorrectAnswers = new List<int>();
+                    foreach (var answer in newCorrectAnswers.Split(','))
+                    {
+                        if (int.TryParse(answer, out int result))
                         {
-                            Console.WriteLine($"Current Option {j + 1}: {question.Options[j]}");
-                            Console.Write("New Option Text (leave empty to keep current): ");
-                            var newOptionText = Console.ReadLine();
-                            if (!string.IsNullOrEmpty(newOptionText))
-                            {
-                                question.Options[j] = newOptionText;
-                            }
-                        }
-                        Console.Write("New Correct Answers (comma separated indices, leave empty to keep current): ");
-                        var newCorrectAnswers = Console.ReadLine();
-                        if (!string.IsNullOrEmpty(newCorrectAnswers))
-                        {
-                            question.CorrectAnswers = newCorrectAnswers.Split(',').Select(int.Parse).ToList();
+                            question.CorrectAnswers.Add(result);
                         }
                     }
-                    quizManager.EditQuiz(quiz);
-                    Console.WriteLine("Quiz updated successfully.");
-                }
-                else
-                {
-                    Console.WriteLine();
-                    Console.Write("Quiz not found. Press any key to return to the admin menu. ");
-                    Console.ReadKey();
                 }
             }
-            else
-            {
-                Console.WriteLine("Invalid username or password.");
-            }
+
+            quizManager.EditQuiz(quiz.QuizName, quiz);
+            Console.WriteLine("Quiz edited successfully!");
         }
 
-        public void DeleteQuiz(string username, string password)
+        public void DeleteQuiz(string adminUsername, string adminPassword)
         {
+            // Admin authentication logic can be added here
             Console.Clear();
-            Console.WriteLine("3. Delete Quiz");
-            Console.WriteLine("==============================================");
-            var user = userManager.AuthenticateUser(username, password);
-            if (user != null)
+            var quizzes = quizManager.ListAllQuizzes();
+            Console.WriteLine("Select a quiz to delete:");
+            for (int i = 0; i < quizzes.Count; i++)
             {
-                Console.Write("Enter Quiz Name to Delete: ");
-                var quizName = Console.ReadLine();
-                var quiz = quizManager.GetQuiz(quizName);
+                Console.WriteLine($"{i + 1}. {quizzes[i].QuizName}");
+            }
 
-                if (quiz != null)
+            int choice;
+            while (true)
+            {
+                Console.Write("Enter your choice: ");
+                if (int.TryParse(Console.ReadLine(), out choice) && choice >= 1 && choice <= quizzes.Count)
                 {
-                    quizManager.DeleteQuiz(quizName);
-                    Console.WriteLine("Quiz deleted successfully.");
+                    choice -= 1;
+                    break;
                 }
                 else
                 {
-                    Console.WriteLine();
-                    Console.Write("Quiz not found. Press any key to return to the admin menu. ");
-                    Console.ReadKey();
+                    Console.WriteLine("Invalid choice. Please try again.");
                 }
             }
-            else
-            {
-                Console.WriteLine("Invalid username or password.");
-            }
+
+            var quizName = quizzes[choice].QuizName;
+            quizManager.RemoveQuiz(quizName);
+            Console.WriteLine("Quiz deleted successfully!");
         }
     }
 }

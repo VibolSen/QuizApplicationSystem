@@ -1,128 +1,54 @@
-﻿using QuizApplicationSystem;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
-public class QuizManager
+namespace QuizApplicationSystem
 {
-    private const string QuizFilePath = "quizzes.txt";
-    private List<Quiz> quizzes = new List<Quiz>();
-
-    public QuizManager()
+    public class QuizManager
     {
-        LoadQuizzesFromFile();
-    }
+        // Stores all quizzes
+        private List<Quiz> quizzes = new List<Quiz>();
 
-    public void CreateQuiz(Quiz quiz)
-    {
-        quizzes.Add(quiz);
-        SaveQuizzesToFile();
-    }
-
-    public void EditQuiz(Quiz quiz)
-    {
-        var existingQuiz = quizzes.Find(q => q.QuizName == quiz.QuizName);
-        if (existingQuiz != null)
+        public List<Quiz> ListAllQuizzes()
         {
-            existingQuiz.Questions = quiz.Questions;
-            SaveQuizzesToFile();
-        }
-    }
-
-    public void DeleteQuiz(string quizName)
-    {
-        var quiz = quizzes.Find(q => q.QuizName == quizName);
-        if (quiz != null)
-        {
-            quizzes.Remove(quiz);
-            SaveQuizzesToFile();
-        }
-    }
-
-    public Quiz GetQuiz(string quizName)
-    {
-        return quizzes.Find(q => q.QuizName == quizName);
-    }
-
-    public List<Quiz> ListAllQuizzes()
-    {
-        return quizzes;
-    }
-
-    public Quiz GenerateMixedQuiz()
-    {
-        var mixedQuiz = new Quiz("Mixed Quiz");
-        var allQuestions = new List<Question>();
-        foreach (var quiz in quizzes)
-        {
-            allQuestions.AddRange(quiz.Questions);
+            // Returns a list of all quizzes
+            return quizzes;
         }
 
-        var random = new Random();
-        var questionCount = Math.Min(20, allQuestions.Count);
-        var usedIndices = new HashSet<int>();
-
-        while (mixedQuiz.Questions.Count < questionCount)
+        public Quiz GenerateMixedQuiz()
         {
-            int index;
-            do
+            // Generates a mixed quiz by selecting random questions from all quizzes
+            var mixedQuiz = new Quiz ("Mixed Quiz");
+            var allQuestions = quizzes.SelectMany(q => q.Questions).ToList();
+            var random = new Random();
+            for (int i = 0; i < 20 && allQuestions.Count > 0; i++)
             {
-                index = random.Next(allQuestions.Count);
-            } while (usedIndices.Contains(index));
-
-            usedIndices.Add(index);
-            mixedQuiz.AddQuestion(allQuestions[index]);
-        }
-
-        return mixedQuiz;
-    }
-
-    private void SaveQuizzesToFile()
-    {
-        using (var writer = new StreamWriter(QuizFilePath))
-        {
-            foreach (var quiz in quizzes)
-            {
-                writer.WriteLine(quiz.QuizName);
-                foreach (var question in quiz.Questions)
-                {
-                    writer.WriteLine(question.QuestionText);
-                    writer.WriteLine(string.Join("|", question.Options));
-                    writer.WriteLine(string.Join(",", question.CorrectAnswers));
-                }
-                writer.WriteLine("ENDQUIZ");
+                var index = random.Next(allQuestions.Count);
+                mixedQuiz.Questions.Add(allQuestions[index]);
+                allQuestions.RemoveAt(index);
             }
+            return mixedQuiz;
         }
-    }
 
-    private void LoadQuizzesFromFile()
-    {
-        if (File.Exists(QuizFilePath))
+        public void AddQuiz(Quiz quiz)
         {
-            using (var reader = new StreamReader(QuizFilePath))
+            // Adds a new quiz to the list
+            quizzes.Add(quiz);
+        }
+
+        public void RemoveQuiz(string quizName)
+        {
+            // Removes a quiz by name
+            quizzes.RemoveAll(q => q.QuizName == quizName);
+        }
+
+        public void EditQuiz(string quizName, Quiz newQuiz)
+        {
+            // Edits an existing quiz
+            var index = quizzes.FindIndex(q => q.QuizName == quizName);
+            if (index != -1)
             {
-                Quiz quiz = null;
-                while (!reader.EndOfStream)
-                {
-                    var line = reader.ReadLine();
-                    if (line == "ENDQUIZ")
-                    {
-                        quizzes.Add(quiz);
-                        quiz = null;
-                    }
-                    else if (quiz == null)
-                    {
-                        quiz = new Quiz(line);
-                    }
-                    else
-                    {
-                        var questionText = line;
-                        var options = reader.ReadLine().Split('|').ToList();
-                        var correctAnswers = reader.ReadLine().Split(',').Select(int.Parse).ToList();
-                        quiz.AddQuestion(new Question(questionText, options, correctAnswers));
-                    }
-                }
+                quizzes[index] = newQuiz;
             }
         }
     }
