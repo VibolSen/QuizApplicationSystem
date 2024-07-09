@@ -4,8 +4,8 @@
     {
         static void Main(string[] args)
         {
-            var app = new QuizApplication();
-            app.Start();
+            QuizApp quizApp = new QuizApp();
+            quizApp.Run();
         }
     }
 }

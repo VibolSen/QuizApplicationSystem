@@ -1,78 +1,75 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 
 namespace QuizApplicationSystem
 {
     public class QuizManager
     {
-        // Stores all quizzes
         private List<Quiz> quizzes = new List<Quiz>();
 
-        public List<Quiz> ListAllQuizzes()
-        {
-            // Returns a list of all quizzes
-            return quizzes;
-        }
+        //test
+        private readonly string quizFilePath = "quizzes.txt";
 
-        public Quiz GenerateMixedQuiz()
+        public QuizManager()
         {
-            // Generates a mixed quiz by selecting random questions from all quizzes
-            var mixedQuiz = new Quiz ("Mixed Quiz");
-            var allQuestions = quizzes.SelectMany(q => q.Questions).ToList();
-            var random = new Random();
-            for (int i = 0; i < 5 && allQuestions.Count > 0; i++)
-            {
-                var index = random.Next(allQuestions.Count);
-                mixedQuiz.Questions.Add(allQuestions[index]);
-                allQuestions.RemoveAt(index);
-            }
-            return mixedQuiz;
+            LoadQuizzesFromFile();
         }
 
         public void AddQuiz(Quiz quiz)
         {
-            // Adds a new quiz to the list
             quizzes.Add(quiz);
+
+            //add test
+            SaveQuizzesToFile();
         }
 
-        public void ViewQuiz(string quizName)
+        public List<Quiz> GetQuizzes()
         {
-            // Finds and displays the details of a quiz by its name
-            var quiz = quizzes.Find(q => q.QuizName == quizName);
-            if (quiz != null)
+            return quizzes;
+        }
+
+        public Quiz GetQuizByTitle(string title)
+        {
+            return quizzes.FirstOrDefault(q => q.Title == title);
+        }
+
+        public void RemoveQuiz(Quiz quiz)
+        {
+            quizzes.Remove(quiz);
+
+            //test
+            SaveQuizzesToFile();
+
+        }
+
+        private void SaveQuizzesToFile()
+        {
+            try
             {
-                Console.WriteLine($"Quiz Name: {quiz.QuizName}");
-                foreach (var question in quiz.Questions)
-                {
-                    Console.WriteLine($"Question: {question.QuestionText}");
-                    for (int i = 0; i < question.Options.Count; i++)
-                    {
-                        Console.WriteLine($"Option {i + 1}: {question.Options[i]}");
-                    }
-                    Console.WriteLine($"Correct Answers: {string.Join(", ", question.CorrectAnswers)}");
-                    Console.WriteLine("==============================================");
-                }
+                var quizData = JsonSerializer.Serialize(quizzes);
+                File.WriteAllText(quizFilePath, quizData);
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine("Quiz not found.");
+                Console.WriteLine("Error saving quizzes: " + ex.Message);
             }
         }
 
-        public void RemoveQuiz(string quizName)
+        private void LoadQuizzesFromFile()
         {
-            // Removes a quiz by name
-            quizzes.RemoveAll(q => q.QuizName == quizName);
-        }
+            if (!File.Exists(quizFilePath))
+                return;
 
-        public void EditQuiz(string quizName, Quiz newQuiz)
-        {
-            // Edits an existing quiz
-            var index = quizzes.FindIndex(q => q.QuizName == quizName);
-            if (index != -1)
+            try
             {
-                quizzes[index] = newQuiz;
+                var quizData = File.ReadAllText(quizFilePath);
+                quizzes = JsonSerializer.Deserialize<List<Quiz>>(quizData) ?? new List<Quiz>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error loading quizzes: " + ex.Message);
             }
         }
     }

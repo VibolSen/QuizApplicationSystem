@@ -8,25 +8,14 @@ namespace QuizApplicationSystem
 {
     public class Quiz
     {
-        public string QuizName { get; set; }
-        public List<Question> Questions { get; set; } = new List<Question>();
+        public string Title { get; set; }
+        public List<Question> Questions { get; set; }
 
-        public Quiz(string quizName)
+        public Quiz(string title)
         {
-            QuizName = quizName;
+            Title = title;
+            Questions = new List<Question>();
         }
-
-        public void AddQuestion(Question question)
-        {
-            Questions.Add(question);
-        }
-
-        public void RemoveQuestion(Question question)
-        {
-            Questions.Remove(question);
-        }
-
-
     }
 
 }
