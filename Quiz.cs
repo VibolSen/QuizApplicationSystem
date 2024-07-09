@@ -25,6 +25,8 @@ namespace QuizApplicationSystem
         {
             Questions.Remove(question);
         }
+
+
     }
 
 }

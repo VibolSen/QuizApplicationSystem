@@ -7,56 +7,6 @@ namespace QuizApplicationSystem
     {
         private QuizManager quizManager = new QuizManager(); // Manages quizzes
 
-        /*public void CreateQuiz(string adminUsername, string adminPassword)
-        {
-            // Admin authentication logic can be added here
-            Console.Clear();
-            Console.WriteLine("Create New Quiz");
-            Console.WriteLine("==============================================");
-            Console.Write("Enter Quiz Name: ");
-            var quizName = Console.ReadLine();
-
-            var quiz = new Quiz(quizName);
-
-            while (true)
-            {
-                Console.WriteLine("Add a new question:");
-                Console.Write("Question Text: ");
-                var question = new Question();
-                //var questionText = Console.ReadLine();
-
-                Console.Write("Question Text: ");
-                question.QuestionText = Console.ReadLine();
-
-                Console.WriteLine("Enter the options (separated by commas):");
-                var options = Console.ReadLine().Split(',');
-                question.Options = new List<string>(options);
-
-                Console.WriteLine("Enter the correct answers (separated by commas, by option number):");
-                var correctAnswers = Console.ReadLine().Split(',');
-                question.CorrectAnswers = new List<int>();
-                foreach (var answer in correctAnswers)
-                {
-                    if (int.TryParse(answer, out int result))
-                    {
-                        question.CorrectAnswers.Add(result);
-                    }
-                }
-
-                quiz.Questions.Add(question);
-
-                Console.Write("Do you want to add another question? (yes/no): ");
-                var continueAdding = Console.ReadLine();
-                if (continueAdding.ToLower() != "yes")
-                {
-                    break;
-                }
-            }
-
-            quizManager.AddQuiz(quiz);
-            Console.WriteLine("Quiz created successfully!");
-        }*/
-
         public void CreateQuiz(string adminUsername, string adminPassword)
         {
             // Admin authentication logic can be added here
@@ -116,26 +66,69 @@ namespace QuizApplicationSystem
         }
 
 
+        //test
         public void ViewQuiz(string adminUsername, string adminPassword)
         {
-            // Admin authentication logic can be added here
-            Console.Clear();
-            var quizzes = quizManager.ListAllQuizzes();
-            foreach (var quiz in quizzes)
+            // Admin authentication logic
+            if (adminUsername != "vibolsen" || adminPassword != "admin123")
             {
-                Console.WriteLine($"Quiz: {quiz.QuizName}");
-                foreach (var question in quiz.Questions)
-                {
-                    Console.WriteLine($"Question: {question.QuestionText}");
-                    for (int i = 0; i < question.Options.Count; i++)
-                    {
-                        Console.WriteLine($"Option {i + 1}: {question.Options[i]}");
-                    }
-                    Console.WriteLine($"Correct Answers: {string.Join(", ", question.CorrectAnswers)}");
-                }
-                Console.WriteLine("==============================================");
+                Console.WriteLine("Unauthorized access.");
+                return;
             }
+
+            Console.Clear();
+            var quizzes = quizManager.ListAllQuizzes(); // Get list of all quizzes
+
+            if (quizzes.Count == 0)
+            {
+                Console.WriteLine("No quizzes available.");
+                return;
+            }
+
+            Console.WriteLine("Available Quizzes:");
+            for (int i = 0; i < quizzes.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}. {quizzes[i].QuizName}");
+            }
+
+            int choice;
+            while (true)
+            {
+                Console.Write("Enter the number of the quiz to view (or 0 to go back): ");
+                if (int.TryParse(Console.ReadLine(), out choice) && choice >= 1 && choice <= quizzes.Count)
+                {
+                    var selectedQuiz = quizzes[choice - 1];
+                    Console.WriteLine();
+                    Console.WriteLine($"Quiz Name: {selectedQuiz.QuizName}");
+
+                    // Print each question and its options
+                    foreach (var question in selectedQuiz.Questions)
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine($"Question: {question.QuestionText}");
+                        for (int j = 0; j < question.Options.Count; j++)
+                        {
+                            Console.WriteLine($"Option {j + 1}: {question.Options[j]}");
+                        }
+                    }
+                    break;
+                }
+                else if (choice == 0)
+                {
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine("Invalid choice. Please try again.");
+                }
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("Press any key to return to Admin Menu...");
+            Console.ReadKey();
         }
+
+
 
         public void EditQuiz(string adminUsername, string adminPassword)
         {

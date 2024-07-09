@@ -38,7 +38,6 @@ namespace QuizApplicationSystem
 
         private void Login()
         {
-            // Clears the console and prompts the user for login details
             Console.Clear();
             Console.WriteLine("1. Login");
             Console.WriteLine("==============================================");
@@ -48,7 +47,11 @@ namespace QuizApplicationSystem
             var password = Console.ReadLine();
             Console.WriteLine();
 
-            // Authenticates the user
+            //Add
+            // Debug output to check input values
+            Console.WriteLine($"Debug: Username entered - {username}, Password entered - {password}");
+
+
             var user = userManager.AuthenticateUser(username, password);
             if (user != null)
             {
@@ -56,8 +59,8 @@ namespace QuizApplicationSystem
                 Console.WriteLine("Login successful!");
                 Console.WriteLine();
 
-                // Redirect to admin or user menu based on username
-                if (username == "vibolsen")
+                // Check if the user is an admin
+                if (username == "vibolsen" && password == "admin123")
                 {
                     AdminMenu();
                 }

@@ -13,6 +13,12 @@ namespace QuizApplicationSystem
         public User AuthenticateUser(string username, string password)
         {
             // Authenticates the user by checking if the username and password match
+            if (username == "vibolsen" && password == "admin123")
+            {
+                // If the username and password match admin credentials
+                return new User(username, password, DateTime.Now); // You should fetch actual date of birth from stored user data.
+            }
+
             if (users.ContainsKey(username) && users[username].Password == password)
             {
                 return new User(username, password, users[username].DateOfBirth);
@@ -30,17 +36,6 @@ namespace QuizApplicationSystem
             users[username] = (password, dateOfBirth);
             return true;
         }
-
-        /*public void EditUserSettings(string username, string newUsername, string newPassword, DateTime newDateOfBirth)
-        {
-            // Edits user settings and updates the user information
-            if (users.ContainsKey(username))
-            {
-                var userInfo = users[username];
-                users.Remove(username);
-                users[newUsername] = (newPassword, newDateOfBirth);
-            }
-        }*/
 
         public bool EditUserSettings(string username, string newUsername, string newPassword, DateTime newDateOfBirth)
         {
@@ -64,7 +59,6 @@ namespace QuizApplicationSystem
 
             return true;
         }
-
 
         public List<(string username, int score)> ListTop20Scores(string quizName)
         {
