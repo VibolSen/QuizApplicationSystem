@@ -19,5 +19,4 @@ namespace QuizApplicationSystem
             DateTaken = dateTaken;
         }
     }
-
 }

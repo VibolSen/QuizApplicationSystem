@@ -21,11 +21,14 @@ namespace QuizApplicationSystem
 
         public void Register()
         {
-            Console.WriteLine("Enter username:");
+            Console.Clear();
+            Console.WriteLine("2. Register");
+            Console.WriteLine("==============================================");
+            Console.Write("Enter username: ");
             string username = Console.ReadLine();
-            Console.WriteLine("Enter password:");
+            Console.Write("Enter password: ");
             string password = Console.ReadLine();
-            Console.WriteLine("Enter date of birth (yyyy-mm-dd):");
+            Console.Write("Enter date of birth (yyyy-mm-dd): ");
             DateTime dateOfBirth;
             if (!DateTime.TryParse(Console.ReadLine(), out dateOfBirth))
             {
@@ -41,9 +44,12 @@ namespace QuizApplicationSystem
 
         public void Login()
         {
-            Console.WriteLine("Enter username:");
+            Console.Clear();
+            Console.WriteLine("1. Login");
+            Console.WriteLine("==============================================");
+            Console.Write("Enter username: ");
             string username = Console.ReadLine();
-            Console.WriteLine("Enter password:");
+            Console.Write("Enter password: ");
             string password = Console.ReadLine();
 
             if (username == adminUsername && password == adminPassword)
@@ -64,6 +70,7 @@ namespace QuizApplicationSystem
 
         public void Logout()
         {
+            Console.Clear();
             currentUser = null;
             Console.WriteLine("Logged out successfully.");
         }
@@ -71,7 +78,10 @@ namespace QuizApplicationSystem
         //test staty quiz
         public void StartQuiz()
         {
-            Console.WriteLine("Select quiz title:");
+            Console.Clear();
+            Console.WriteLine("1. Start Quiz");
+            Console.WriteLine("==============================================");
+            Console.Write("Select quiz title: ");
             foreach (var quiz in quizManager.GetQuizzes())
                 Console.WriteLine(quiz.Title);
 
@@ -89,7 +99,7 @@ namespace QuizApplicationSystem
                         Console.WriteLine($"{i + 1}. {question.Answers[i].Text}");
                     }
 
-                    Console.WriteLine("Enter your answer(s) (comma separated):");
+                    Console.Write("Enter your answer(s) (comma separated):  ");
                     var userAnswers = Console.ReadLine().Split(',').Select(answer =>
                     {
                         return int.TryParse(answer.Trim(), out int parsedAnswer) ? parsedAnswer : -1;
@@ -102,6 +112,9 @@ namespace QuizApplicationSystem
                 var result = new QuizResult(selectedQuiz, correctAnswers, DateTime.Now);
                 currentUser.QuizResults.Add(result);
                 Console.WriteLine($"You answered {correctAnswers} out of {selectedQuiz.Questions.Count} correctly.");
+
+                // Save the result to file
+                SaveResultToFile(result);
             }
             else
             {
@@ -109,14 +122,27 @@ namespace QuizApplicationSystem
             }
         }
 
+        // Update
         public void ViewResults()
         {
-            foreach (var result in currentUser.QuizResults)
+            Console.Clear();
+            Console.WriteLine("2. View Result");
+            Console.WriteLine("==============================================");
+            Console.WriteLine();
+            var results = LoadResultsFromFile();
+
+            if (results.Any())
             {
-                Console.WriteLine($"Quiz: {result.Quiz.Title}, Correct Answers: {result.CorrectAnswers}, Date: {result.DateTaken}");
+                foreach (var result in results)
+                {
+                    Console.WriteLine($"Quiz: {result.Quiz.Title}, Correct Answers: {result.CorrectAnswers}, Date: {result.DateTaken}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("No results found.");
             }
         }
-
         public void ViewTop10()
         {
             Console.WriteLine("Select quiz title to view top 10 results:");
@@ -145,50 +171,169 @@ namespace QuizApplicationSystem
             }
         }
 
-        public void ChangeSettings()
+        // Add view all result
+        public void ViewAllResults()
         {
-            Console.WriteLine("Change password (enter new password or leave blank to skip):");
-            string newPassword = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(newPassword))
+            Console.Clear();
+            Console.WriteLine("View All Results");
+            Console.WriteLine("==============================================");
+
+            var resultFiles = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*_results.txt");
+
+            if (!resultFiles.Any())
             {
-                userManager.ChangePassword(currentUser, newPassword);
-                Console.WriteLine("Password changed successfully.");
+                Console.WriteLine("No results found.");
+                return;
             }
 
-            Console.WriteLine("Change date of birth (enter new date of birth (yyyy-mm-dd) or leave blank to skip):");
-            string newDateOfBirth = Console.ReadLine();
-            DateTime dateOfBirth;
-            if (!string.IsNullOrWhiteSpace(newDateOfBirth) && DateTime.TryParse(newDateOfBirth, out dateOfBirth))
+            foreach (var file in resultFiles)
             {
-                userManager.ChangeDateOfBirth(currentUser, dateOfBirth);
-                Console.WriteLine("Date of birth changed successfully.");
+                var username = Path.GetFileNameWithoutExtension(file).Replace("_results", "");
+                Console.WriteLine($"Results for user: {username}");
+                Console.WriteLine("----------------------------");
+
+                try
+                {
+                    var lines = File.ReadAllLines(file);
+                    for (int i = 0; i < lines.Length; i += 4)
+                    {
+                        if (i + 3 < lines.Length &&
+                            lines[i].StartsWith("Quiz:") &&
+                            lines[i + 1].StartsWith("Correct Answers:") &&
+                            lines[i + 2].StartsWith("Date Taken:"))
+                        {
+                            var quizTitle = lines[i].Substring(lines[i].IndexOf(":") + 2).Trim();
+                            var correctAnswers = int.Parse(lines[i + 1].Substring(lines[i + 1].IndexOf(":") + 2).Trim());
+                            var dateTaken = DateTime.Parse(lines[i + 2].Substring(lines[i + 2].IndexOf(":") + 2).Trim());
+                            var quiz = quizManager.GetQuizByTitle(quizTitle);
+
+                            if (quiz != null)
+                            {
+                                Console.WriteLine($"Quiz: {quizTitle}");
+                                Console.WriteLine($"Correct Answers: {correctAnswers}");
+                                Console.WriteLine($"Date Taken: {dateTaken}");
+                                Console.WriteLine();
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Quiz '{quizTitle}' not found in quiz manager.");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Unexpected format in file: {file} at line: {i}");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error reading results for user '{username}': {ex.Message}");
+                }
+            }
+        }
+
+        //test
+        public void ChangeSettings()
+        {
+            // Display current user data in a table format
+            Console.Clear();
+            Console.WriteLine("4. Change Setting");
+            Console.WriteLine("==============================================");
+            Console.WriteLine("Current User Data:");
+            Console.WriteLine("------------------");
+            Console.WriteLine($"Username: {currentUser.Username}");
+            Console.WriteLine($"Password: {currentUser.Password}");
+            Console.WriteLine($"Date of Birth: {currentUser.DateOfBirth:yyyy-MM-dd}");
+            Console.WriteLine("------------------");
+
+            // Ask the user which data they want to change
+            Console.Write("Which one do you want to change? (username/password/date of birth): ");
+            string changeChoice = Console.ReadLine().ToLower();
+
+            switch (changeChoice)
+            {
+                case "username":
+                    Console.Write("Enter new username: ");
+                    string newUsername = Console.ReadLine();
+                    Console.Write($"Are you sure you want to change your username to {newUsername}? (Y/N) ");
+                    if (Console.ReadLine().ToLower() == "y")
+                    {
+                        currentUser.Username = newUsername;
+                        Console.WriteLine("Username changed successfully.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Username change canceled.");
+                    }
+                    break;
+
+                case "password":
+                    Console.Write("Enter new password: ");
+                    string newPassword = Console.ReadLine();
+                    Console.Write($"Are you sure you want to change your password to {newPassword}? (Y/N) ");
+                    if (Console.ReadLine().ToLower() == "y")
+                    {
+                        userManager.ChangePassword(currentUser, newPassword);
+                        Console.WriteLine("Password changed successfully.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Password change canceled.");
+                    }
+                    break;
+
+                case "date of birth":
+                    Console.Write("Enter new date of birth (yyyy-mm-dd): ");
+                    DateTime newDateOfBirth;
+                    if (DateTime.TryParse(Console.ReadLine(), out newDateOfBirth))
+                    {
+                        Console.Write($"Are you sure you want to change your date of birth to {newDateOfBirth:yyyy-MM-dd}? (Y/N) ");
+                        if (Console.ReadLine().ToLower() == "y")
+                        {
+                            userManager.ChangeDateOfBirth(currentUser, newDateOfBirth);
+                            Console.WriteLine("Date of birth changed successfully.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Date of birth change canceled.");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid date format.");
+                    }
+                    break;
+
+                default:
+                    Console.WriteLine("Invalid choice.");
+                    break;
             }
         }
 
         public void CreateQuiz()
         {
-            Console.WriteLine("Enter quiz title:");
+            Console.Write("Enter quiz title: ");
             string title = Console.ReadLine();
             var quiz = new Quiz(title);
 
             // Add questions to the quiz
             for (int i = 0; i < 5; i++)
             {
-                Console.WriteLine($"Enter question {i + 1}:");
+                Console.Write($"Enter question {i + 1}: ");
                 string questionText = Console.ReadLine();
                 var question = new Question(questionText);
 
                 // Add answers to the question
-                for (int j = 0; j < 4; j++)
+                for (int j = 0; j < 3; j++)
                 {
-                    Console.WriteLine($"Enter answer {j + 1}:");
+                    Console.Write($"Enter answer {j + 1}: ");
                     string answerText = Console.ReadLine();
                     var answer = new Answer(answerText);
                     question.Answers.Add(answer);
                 }
 
                 // Set correct answer index (1-4)
-                Console.WriteLine("Enter correct answer index (1-4):");
+                Console.Write("Enter correct answer index (1-3): ");
                 int correctIndex;
                 while (!int.TryParse(Console.ReadLine(), out correctIndex) || correctIndex < 1 || correctIndex > 4)
                 {
@@ -303,11 +448,16 @@ namespace QuizApplicationSystem
         {
             while (true)
             {
+                Console.Clear();
+                Console.WriteLine("Admin Menu");
+                Console.WriteLine("==============================================");
                 Console.WriteLine("1. Create Quiz");
                 Console.WriteLine("2. View Quiz");
                 Console.WriteLine("3. Edit Quiz");
                 Console.WriteLine("4. Delete Quiz");
                 Console.WriteLine("5. Logout");
+                Console.WriteLine();
+                Console.Write("Enter your choice: ");
 
                 int choice;
                 if (!int.TryParse(Console.ReadLine(), out choice))
@@ -344,11 +494,17 @@ namespace QuizApplicationSystem
         {
             while (true)
             {
+                Console.Clear();
+                Console.WriteLine("User Menu");
+                Console.WriteLine("==============================================");
                 Console.WriteLine("1. Start Quiz");
                 Console.WriteLine("2. View Results");
                 Console.WriteLine("3. View Top Quiz");
-                Console.WriteLine("4. Edit Settings");
-                Console.WriteLine("5. Logout");
+                Console.WriteLine("4. View All Results");
+                Console.WriteLine("5. Edit Settings");
+                Console.WriteLine("6. Logout");
+                Console.WriteLine();
+                Console.Write("Enter your choice: ");
 
                 int choice;
                 if (!int.TryParse(Console.ReadLine(), out choice))
@@ -369,9 +525,12 @@ namespace QuizApplicationSystem
                         ViewTop10();
                         break;
                     case 4:
-                        ChangeSettings();
+                        ViewAllResults();
                         break;
                     case 5:
+                        ChangeSettings();
+                        break;
+                    case 6:
                         Logout();
                         return;
                     default:
@@ -385,11 +544,14 @@ namespace QuizApplicationSystem
         {
             while (true)
             {
+                Console.Clear();
                 Console.WriteLine("Welcome to Quiz Application");
-                Console.WriteLine("====================");
+                Console.WriteLine("===========================");
                 Console.WriteLine("1. Login");
                 Console.WriteLine("2. Register");
                 Console.WriteLine("0. Exit program");
+                Console.WriteLine();
+                Console.Write("Please Enter Your Choice: ");
 
                 int choice;
                 if (!int.TryParse(Console.ReadLine(), out choice))
@@ -426,6 +588,45 @@ namespace QuizApplicationSystem
             {
                 Console.WriteLine("Error saving quizzes: " + ex.Message);
             }
+        }
+
+        private void SaveResultToFile(QuizResult result)
+        {
+            string resultFile = $"{currentUser.Username}_results.txt";
+            using (StreamWriter writer = new StreamWriter(resultFile, true))
+            {
+                writer.WriteLine($"Quiz: {result.Quiz.Title}");
+                writer.WriteLine($"Correct Answers: {result.CorrectAnswers}");
+                writer.WriteLine($"Date Taken: {result.DateTaken}");
+                writer.WriteLine();
+            }
+        }
+
+        private List<QuizResult> LoadResultsFromFile()
+        {
+            string resultFile = $"{currentUser.Username}_results.txt";
+            List<QuizResult> results = new List<QuizResult>();
+
+            if (File.Exists(resultFile))
+            {
+                using (StreamReader reader = new StreamReader(resultFile))
+                {
+                    string line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        if (line.StartsWith("Quiz:"))
+                        {
+                            string quizTitle = line.Substring(line.IndexOf(":") + 2).Trim();
+                            int correctAnswers = int.Parse(reader.ReadLine().Substring(line.IndexOf(":") + 2).Trim());
+                            DateTime dateTaken = DateTime.Parse(reader.ReadLine().Substring(line.IndexOf(":") + 2).Trim());
+                            Quiz quiz = quizManager.GetQuizByTitle(quizTitle);
+                            results.Add(new QuizResult(quiz, correctAnswers, dateTaken));
+                        }
+                    }
+                }
+            }
+
+            return results;
         }
     }
 }
