@@ -1,31 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.IO;
 
 namespace QuizApplicationSystem
 {
-
     public class UserManager
     {
-        private List<User> users = new List<User>();
-
-        //test
-        private readonly string usersFilePath = "users.txt";
+        private List<User> users;
 
         public UserManager()
         {
-            LoadUsersFromFile();
+            users = LoadUsersFromFile();
         }
 
         public bool RegisterUser(string username, string password, DateTime dateOfBirth)
         {
             if (users.Any(u => u.Username == username))
-                return false;
+            {
+                return false; // Username already exists
+            }
 
             var newUser = new User(username, password, dateOfBirth);
             users.Add(newUser);
-            //add test
             SaveUsersToFile();
             return true;
         }
@@ -35,52 +33,44 @@ namespace QuizApplicationSystem
             return users.FirstOrDefault(u => u.Username == username && u.Password == password);
         }
 
-        public List<User> GetUsers()
+        public void UpdateUser(User user)
         {
-            return users;
-        }
-
-        public void ChangePassword(User user, string newPassword)
-        {
-            user.Password = newPassword;
-            SaveUsersToFile();
-        }
-
-        public void ChangeDateOfBirth(User user, DateTime newDateOfBirth)
-        {
-            user.DateOfBirth = newDateOfBirth;
-            SaveUsersToFile();
+            var existingUser = users.FirstOrDefault(u => u.Username == user.Username);
+            if (existingUser != null)
+            {
+                existingUser.Password = user.Password;
+                SaveUsersToFile();
+            }
         }
 
         private void SaveUsersToFile()
         {
-            using (StreamWriter writer = new StreamWriter(usersFilePath))
+            try
             {
-                foreach (var user in users)
-                {
-                    writer.WriteLine($"{user.Username},{user.Password},{user.DateOfBirth:yyyy-MM-dd}");
-                }
+                string json = JsonSerializer.Serialize(users);
+                File.WriteAllText("users.txt", json);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving users to file: {ex.Message}");
             }
         }
 
-        private void LoadUsersFromFile()
+        private List<User> LoadUsersFromFile()
         {
-            if (!File.Exists(usersFilePath))
-                return;
-
-            using (StreamReader reader = new StreamReader(usersFilePath))
+            try
             {
-                string line;
-                while ((line = reader.ReadLine()) != null)
+                if (File.Exists("users.txt"))
                 {
-                    var parts = line.Split(',');
-                    if (parts.Length == 3 &&
-                        DateTime.TryParse(parts[2], out DateTime dateOfBirth))
-                    {
-                        var user = new User(parts[0], parts[1], dateOfBirth);
-                        users.Add(user);
-                    }
+                    string json = File.ReadAllText("users.txt");
+                    return JsonSerializer.Deserialize<List<User>>(json) ?? new List<User>();
                 }
+                return new List<User>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading users from file: {ex.Message}");
+                return new List<User>();
             }
         }
     }

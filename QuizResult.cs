@@ -1,22 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QuizApplicationSystem
 {
     public class QuizResult
     {
-        public Quiz Quiz { get; set; }
-        public int CorrectAnswers { get; set; }
-        public DateTime DateTaken { get; set; }
+        public string UserName { get; set; }
+        public string QuizTitle { get; set; }
+        public int Score { get; set; }
+        public int TimeTaken { get; set; } // in seconds
+        public DateTime Timestamp { get; set; }
 
-        public QuizResult(Quiz quiz, int correctAnswers, DateTime dateTaken)
+        public QuizResult(string userName, string quizTitle)
         {
-            Quiz = quiz;
-            CorrectAnswers = correctAnswers;
-            DateTaken = dateTaken;
+            UserName = userName;
+            QuizTitle = quizTitle;
+            Score = 0;
+            TimeTaken = 0;
+            Timestamp = DateTime.Now;
         }
     }
 }

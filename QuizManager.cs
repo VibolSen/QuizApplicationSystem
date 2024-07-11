@@ -7,21 +7,22 @@ namespace QuizApplicationSystem
 {
     public class QuizManager
     {
-        private List<Quiz> quizzes = new List<Quiz>();
-
-        //test
-        private readonly string quizFilePath = "quizzes.txt";
+        private List<Quiz> quizzes;
 
         public QuizManager()
         {
-            LoadQuizzesFromFile();
+            quizzes = LoadQuizzesFromFile();
         }
 
         public void AddQuiz(Quiz quiz)
         {
             quizzes.Add(quiz);
+            SaveQuizzesToFile();
+        }
 
-            //add test
+        public void RemoveQuiz(Quiz quiz)
+        {
+            quizzes.Remove(quiz);
             SaveQuizzesToFile();
         }
 
@@ -35,41 +36,34 @@ namespace QuizApplicationSystem
             return quizzes.FirstOrDefault(q => q.Title == title);
         }
 
-        public void RemoveQuiz(Quiz quiz)
-        {
-            quizzes.Remove(quiz);
-
-            //test
-            SaveQuizzesToFile();
-
-        }
-
         private void SaveQuizzesToFile()
         {
             try
             {
-                var quizData = JsonSerializer.Serialize(quizzes);
-                File.WriteAllText(quizFilePath, quizData);
+                string json = JsonSerializer.Serialize(quizzes);
+                File.WriteAllText("quizzes.txt", json);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error saving quizzes: " + ex.Message);
+                Console.WriteLine($"Error saving quizzes to file: {ex.Message}");
             }
         }
 
-        private void LoadQuizzesFromFile()
+        private List<Quiz> LoadQuizzesFromFile()
         {
-            if (!File.Exists(quizFilePath))
-                return;
-
             try
             {
-                var quizData = File.ReadAllText(quizFilePath);
-                quizzes = JsonSerializer.Deserialize<List<Quiz>>(quizData) ?? new List<Quiz>();
+                if (File.Exists("quizzes.txt"))
+                {
+                    string json = File.ReadAllText("quizzes.txt");
+                    return JsonSerializer.Deserialize<List<Quiz>>(json) ?? new List<Quiz>();
+                }
+                return new List<Quiz>();
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error loading quizzes: " + ex.Message);
+                Console.WriteLine($"Error loading quizzes from file: {ex.Message}");
+                return new List<Quiz>();
             }
         }
     }
